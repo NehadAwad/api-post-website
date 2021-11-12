@@ -26,9 +26,14 @@ Route::post('/logout', function (){
 });
 Route::group(['middleware'=>['auth:sanctum']], function(){
 
-    Route::post('/create-post',[PostController::class,'createPost']);
-    Route::get('/posts',[PostController::class,'viewPosts']);
-    Route::get('/post/{id}',[PostController::class,'viewPost']);
+    Route::apiResource('posts', PostController::class);
+
+//    Route::post('/create-post',[PostController::class,'createPost']);
+//    Route::get('/posts',[PostController::class,'viewPosts']);
+//    Route::get('/post/{id}',[PostController::class,'viewPost']);
+//    Route::put('/update/{id}',[PostController::class,'updatePost']);
+//    Route::delete('/detele/{id}', [PostController::class, 'deletePost']);
+
 });
 
 //Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
