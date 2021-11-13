@@ -27,6 +27,7 @@ Route::post('/logout', function (){
 Route::group(['middleware'=>['auth:sanctum']], function(){
 
     Route::apiResource('posts', PostController::class);
+    Route::post('/update/{id}', [PostController::class, 'updatePost']);
 
 //    Route::post('/create-post',[PostController::class,'createPost']);
 //    Route::get('/posts',[PostController::class,'viewPosts']);

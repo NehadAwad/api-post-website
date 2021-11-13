@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\PostCollection;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Http\Resources\Post as PostResource;
 
 class PostController extends Controller
 {
-    public function createPost(Request $request){
+    public function store(Request $request){
 
 
         try {
@@ -50,11 +51,9 @@ class PostController extends Controller
 
     public function index(){
         try {
-            return response([
-                'data' => Post::all(),
-                'status' => 'Success',
-                'status_code' => 200,
-            ]);
+
+            $post = Post::all();
+            return new PostCollection($post);
 
         } catch (\Exception $error){
             return response()->json([
@@ -65,50 +64,38 @@ class PostController extends Controller
         }
     }
 
-    public function show(Post $post){
+    public function show(Post $post)
+    {
 
-        return new PostResource($post);
-//        try {
-//            $post = Post::find($id);
-//            if($post){
-//                return response([
-//                    'data' => Post::find($id),
-//                    'status' => 'Success',
-//                    'status_code' => 200,
-//                ]);
-//            }else{
-//                return response()->json([
-//                    'status_code' => 500,
-//                    'message' => 'Post not found',
-//                ]);
-//            }
-//
-//
-//        } catch (\Exception $error){
-//            return response()->json([
-//                'status_code' => 500,
-//                'message' => 'Post not found',
-//                'error' => $error,
-//            ]);
-//        }
+        try {
+            return new PostResource($post);
+
+        } catch (\Exception $error) {
+            return response()->json([
+                'status_code' => 500,
+                'message' => 'Not found',
+                'error' => $error,
+            ]);
+
+        }
     }
 
     public function updatePost(Request $request, $id){
 
-        //dd($request);
-        if ($request->hasFile('thumbnail')){
-            $fileName = date('YmdHis') . "." .$request->file('thumbnail')->getClientOriginalExtension();
-            $request->file('thumbnail')->move(public_path('thumbnail'),$fileName);
-
-        }
-
-        $post=Post::where('id', $id)
-            ->update([
-                'title' => $request->title,
-                'description' => $request->description,
-                'thumbnail' => $fileName,
-                'status' => $request->status
-            ]);
+        //dd($request->thumbnail);
+        //$fileName = '';
+//        if ($request->hasFile('thumbnail')){
+//            $fileName = date('YmdHis') . "." .$request->file('thumbnail')->getClientOriginalExtension();
+//            $request->file('thumbnail')->move(public_path('thumbnail'),$fileName);
+//        }
+//
+//        $post=Post::where('id', $id)
+//            ->update([
+//                'title' => $request->title,
+//                'description' => $request->description,
+//                'thumbnail' => $fileName,
+//                'status' => $request->status
+//            ]);
         //dd($post);
 
         try {
@@ -128,14 +115,14 @@ class PostController extends Controller
             }
 
 
-
-            $post=where('id', $id)
-                ->update([
-                   'title' => $request->title,
-                    'description' => $request->description,
-                    'thumbnail' => $fileName,
-                    'status' => $request->status
-                ]);
+            $post=Post::find($id);
+            //dd($post);
+            $post->update([
+               'title' => $request->title,
+                'description' => $request->description,
+                'thumbnail' => $fileName,
+                'status' => $request->status
+            ]);
             return response([
                 'data' =>  $post,
                 'status' => 'Success',
@@ -153,11 +140,15 @@ class PostController extends Controller
 
     }
 
-    public function deletePost($id){
+    public function destroy(Post $post){
 
         try{
-            $post = Post::find($id);
-            dd($post);
+            $post->delete();
+            return response()->json([
+                'status_code' => 200,
+                'message' => 'Post Deleted',
+
+            ]);
 
         } catch (\Exception $error){
             return response()->json([

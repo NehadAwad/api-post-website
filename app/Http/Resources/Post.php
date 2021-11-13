@@ -25,4 +25,11 @@ class Post extends JsonResource
             'creator name' => Auth::user()->name
         ];
     }
+
+    public function with($request)
+    {
+        return [
+            'status' => 'ok'
+        ];
+    }
 }
