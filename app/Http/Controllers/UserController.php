@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\ApiTrait;
+use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+
+    use ApiTrait;
     public function loginUser(Request $request){
         try {
             $request->validate([
@@ -72,6 +76,36 @@ class UserController extends Controller
             return response()->json([
                 'status_code' => 500,
                 'message' => 'Error in Register',
+                'error' => $error,
+            ]);
+        }
+    }
+
+    public function logout(){
+        auth()->user()->tokens()->delete();
+        return response('Logged out');
+    }
+
+    public function allUsers(){
+        try {
+
+            if($this->isAdmin()){
+                return response()->json([
+                    'data' => User::all(),
+                    'status'=> "success",
+                    'status_code' => 200,
+                ]);
+            }
+            return response()->json([
+                'status_code' => 500,
+                'message' => 'Access denied',
+
+            ]);
+
+        } catch (\Exception $error) {
+            return response()->json([
+                'status_code' => 500,
+                'message' => 'Access denied',
                 'error' => $error,
             ]);
         }

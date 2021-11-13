@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PostController;
@@ -18,17 +19,17 @@ use App\Http\Controllers\PostController;
 */
 
 
-Route::post('/login', [UserController::class,'loginUser']);
-Route::post('/register', [UserController::class,'registerUser']);
-Route::post('/logout', function (){
-    \Illuminate\Support\Facades\Auth::logout();
-    return response('logged out');
-});
+
+Route::post('/login', [UserController::class, 'loginUser']);
+Route::post('/register', [UserController::class, 'registerUser']);
+Route::get('/logout', [UserController::class, 'logout']);
+
 Route::group(['middleware'=>['auth:sanctum']], function(){
 
     Route::apiResource('posts', PostController::class);
     Route::post('/update/{id}', [PostController::class, 'updatePost']);
-
+    Route::get('/logout', [UserController::class, 'logout']);
+    Route::get('/all-users', [UserController::class, 'allUsers']);
 //    Route::post('/create-post',[PostController::class,'createPost']);
 //    Route::get('/posts',[PostController::class,'viewPosts']);
 //    Route::get('/post/{id}',[PostController::class,'viewPost']);

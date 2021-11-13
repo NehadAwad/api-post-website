@@ -6,37 +6,48 @@ use App\Http\Resources\PostCollection;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use App\Http\Resources\Post as PostResource;
+use App\Traits\ApiTrait;
+
 
 class PostController extends Controller
 {
+
+    use ApiTrait;
+
     public function store(Request $request){
 
-
         try {
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string|max:255',
-                'thumbnail' => 'required',
-                'status' => 'required'
-            ]);
 
-            if ($request->hasFile('thumbnail')){
-                $fileName = date('YmdHis') . "." .$request->file('thumbnail')->getClientOriginalExtension();
-                $request->file('thumbnail')->move(public_path('thumbnail'),$fileName);
+            if($this->isAdmin()){
+                $request->validate([
+                    'title' => 'required|string|max:255',
+                    'description' => 'required|string|max:255',
+                    'thumbnail' => 'required',
+                    'status' => 'required'
+                ]);
+
+                if ($request->hasFile('thumbnail')){
+                    $fileName = date('YmdHis') . "." .$request->file('thumbnail')->getClientOriginalExtension();
+                    $request->file('thumbnail')->move(public_path('thumbnail'),$fileName);
+                }
+                $post = Post::create([
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'user_id' => auth()->id(),
+                    'thumbnail' => $fileName,
+                    'status' => $request->status
+                ]);
+                return response([
+                    'post' => $post,
+                    'status' => 'post created',
+                    'status_code' => 200,
+                ]);
+            } else{
+                return response()->json([
+                    'status_code' => 500,
+                    'message' => 'Access denied',
+                ]);
             }
-            $post = Post::create([
-                'title' => $request->title,
-                'description' => $request->description,
-                'user_id' => auth()->id(),
-                'thumbnail' => $fileName,
-                'status' => $request->status
-            ]);
-            return response([
-                'post' => $post,
-                'status' => 'post created',
-                'status_code' => 200,
-            ]);
-
 
 
         } catch (\Exception $error) {
@@ -67,8 +78,17 @@ class PostController extends Controller
     public function show(Post $post)
     {
 
+
         try {
-            return new PostResource($post);
+            if($this->isAdmin()){
+                return new PostResource($post);
+            }else{
+                eturn response()->json([
+                    'status_code' => 500,
+                    'message' => 'Access denied',
+                ]);
+            }
+
 
         } catch (\Exception $error) {
             return response()->json([
@@ -82,21 +102,6 @@ class PostController extends Controller
 
     public function updatePost(Request $request, $id){
 
-        //dd($request->thumbnail);
-        //$fileName = '';
-//        if ($request->hasFile('thumbnail')){
-//            $fileName = date('YmdHis') . "." .$request->file('thumbnail')->getClientOriginalExtension();
-//            $request->file('thumbnail')->move(public_path('thumbnail'),$fileName);
-//        }
-//
-//        $post=Post::where('id', $id)
-//            ->update([
-//                'title' => $request->title,
-//                'description' => $request->description,
-//                'thumbnail' => $fileName,
-//                'status' => $request->status
-//            ]);
-        //dd($post);
 
         try {
 
@@ -107,7 +112,7 @@ class PostController extends Controller
                 'status' => 'required'
             ]);
 
-            //dd('ok');
+
             if ($request->hasFile('thumbnail')){
                 $fileName = date('YmdHis') . "." .$request->file('thumbnail')->getClientOriginalExtension();
                 $request->file('thumbnail')->move(public_path('thumbnail'),$fileName);
@@ -116,7 +121,7 @@ class PostController extends Controller
 
 
             $post=Post::find($id);
-            //dd($post);
+
             $post->update([
                'title' => $request->title,
                 'description' => $request->description,
@@ -136,8 +141,6 @@ class PostController extends Controller
                 'error' => $error,
             ]);
         }
-
-
     }
 
     public function destroy(Post $post){
@@ -147,7 +150,6 @@ class PostController extends Controller
             return response()->json([
                 'status_code' => 200,
                 'message' => 'Post Deleted',
-
             ]);
 
         } catch (\Exception $error){
