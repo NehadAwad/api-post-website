@@ -17,6 +17,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+//Route::get('/test', [\App\Http\Controllers\UserController::class, 'test']);
+
 Route::group(['middleware'=>['auth:sanctum']], function(){
     //
 });

@@ -2,17 +2,25 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Models\User;
 use App\Traits\ApiTrait;
 use http\Env\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Interfaces\PostInterface;
 
 class UserController extends Controller
 {
 
     use ApiTrait;
+
+    protected $testRepo;
+    public function __construct(PostInterface $postInterface)
+    {
+        $this->postRepo = $postInterface;
+    }
     public function loginUser(Request $request){
         try {
             $request->validate([
@@ -109,5 +117,10 @@ class UserController extends Controller
                 'error' => $error,
             ]);
         }
+    }
+
+    public function test(){
+        $test = $this->postRepo->test();
+        return $test;
     }
 }

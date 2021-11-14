@@ -83,7 +83,7 @@ class PostController extends Controller
             if($this->isAdmin()){
                 return new PostResource($post);
             }else{
-                eturn response()->json([
+                return response()->json([
                     'status_code' => 500,
                     'message' => 'Access denied',
                 ]);
@@ -104,35 +104,42 @@ class PostController extends Controller
 
 
         try {
+            if($this->isAdmin()){
+                $request->validate([
+                    'title' => 'required|string|max:255',
+                    'description' => 'required|string|max:255',
+                    'thumbnail' => 'required',
+                    'status' => 'required'
+                ]);
 
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string|max:255',
-                'thumbnail' => 'required',
-                'status' => 'required'
-            ]);
+
+                if ($request->hasFile('thumbnail')){
+                    $fileName = date('YmdHis') . "." .$request->file('thumbnail')->getClientOriginalExtension();
+                    $request->file('thumbnail')->move(public_path('thumbnail'),$fileName);
+
+                }
 
 
-            if ($request->hasFile('thumbnail')){
-                $fileName = date('YmdHis') . "." .$request->file('thumbnail')->getClientOriginalExtension();
-                $request->file('thumbnail')->move(public_path('thumbnail'),$fileName);
+                $post=Post::find($id);
 
+                $post->update([
+                    'title' => $request->title,
+                    'description' => $request->description,
+                    'thumbnail' => $fileName,
+                    'status' => $request->status
+                ]);
+                return response([
+                    'data' =>  $post,
+                    'status' => 'Success',
+                    'status_code' => 200,
+                ]);
+            }else{
+                return response()->json([
+                    'status_code' => 500,
+                    'message' => 'Access denied',
+                ]);
             }
 
-
-            $post=Post::find($id);
-
-            $post->update([
-               'title' => $request->title,
-                'description' => $request->description,
-                'thumbnail' => $fileName,
-                'status' => $request->status
-            ]);
-            return response([
-                'data' =>  $post,
-                'status' => 'Success',
-                'status_code' => 200,
-            ]);
 
         } catch (\Exception $error){
             return response()->json([
@@ -146,11 +153,19 @@ class PostController extends Controller
     public function destroy(Post $post){
 
         try{
-            $post->delete();
-            return response()->json([
-                'status_code' => 200,
-                'message' => 'Post Deleted',
-            ]);
+            if ($this->isAdmin()){
+                $post->delete();
+                return response()->json([
+                    'status_code' => 200,
+                    'message' => 'Post Deleted',
+                ]);
+            }else{
+                return response()->json([
+                    'status_code' => 500,
+                    'message' => 'Access denied',
+                ]);
+            }
+
 
         } catch (\Exception $error){
             return response()->json([
